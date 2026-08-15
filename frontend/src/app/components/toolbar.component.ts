@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ResumeStoreService } from '../services/resume-store.service';
 import { ApiService, HistoryMeta } from '../services/api.service';
@@ -14,7 +14,7 @@ import { ApiService, HistoryMeta } from '../services/api.service';
         <button (click)="saveToServer()" [disabled]="savingHistory()">
           {{ savingHistory() ? 'Saving...' : 'Save to server' }}
         </button>
-        <div class="dropdown" (mouseleave)="dropdownOpen.set(false)">
+        <div class="dropdown" #dropdownRoot>
           <button type="button" (click)="toggleDropdown()">
             Load previous <span class="caret">&#9662;</span>
           </button>
@@ -57,13 +57,13 @@ import { ApiService, HistoryMeta } from '../services/api.service';
     .menu {
       position: absolute;
       right: 0;
-      top: calc(100% + 4px);
+      top: 100%;
       background: #fff;
       color: #1c2334;
       border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.2);
       list-style: none;
-      margin: 0;
+      margin: 4px 0 0;
       padding: 4px;
       min-width: 240px;
       z-index: 20;
@@ -89,6 +89,7 @@ import { ApiService, HistoryMeta } from '../services/api.service';
 export class ToolbarComponent implements OnInit {
   private readonly store = inject(ResumeStoreService);
   private readonly api = inject(ApiService);
+  private readonly host = inject(ElementRef<HTMLElement>);
 
   readonly busy = signal(false);
   readonly savingHistory = signal(false);
@@ -98,6 +99,14 @@ export class ToolbarComponent implements OnInit {
 
   ngOnInit(): void {
     this.refreshHistory();
+  }
+
+  @HostListener('document:click', ['$event.target'])
+  onDocumentClick(target: EventTarget | null): void {
+    if (!this.dropdownOpen()) return;
+    const root = this.host.nativeElement.querySelector('.dropdown');
+    if (root && target instanceof Node && root.contains(target)) return;
+    this.dropdownOpen.set(false);
   }
 
   exportJson(): void {
