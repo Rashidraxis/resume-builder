@@ -1,12 +1,13 @@
 import { Component, ElementRef, HostListener, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ResumeStoreService } from '../services/resume-store.service';
 import { ApiService, HistoryMeta } from '../services/api.service';
 
 @Component({
   selector: 'app-toolbar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="bar">
       <span class="brand">ATS Resume Builder</span>
@@ -33,6 +34,7 @@ import { ApiService, HistoryMeta } from '../services/api.service';
           Import JSON
           <input type="file" accept="application/json" (change)="importJson($event)" hidden />
         </label>
+        <button type="button" (click)="pasteOpen.set(true)">Paste JSON</button>
         <button (click)="downloadPdf()" [disabled]="busy()">
           {{ busy() ? 'Rendering PDF...' : 'Download PDF' }}
         </button>
@@ -40,6 +42,17 @@ import { ApiService, HistoryMeta } from '../services/api.service';
       </div>
     </div>
     <p class="msg" *ngIf="message()">{{ message() }}</p>
+    <div class="paste-backdrop" *ngIf="pasteOpen()" (click)="pasteOpen.set(false)">
+      <section class="paste-dialog" (click)="$event.stopPropagation()">
+        <h2>Paste resume JSON</h2>
+        <p>Paste the resume object and it will fill the editor automatically.</p>
+        <textarea [(ngModel)]="pasteValue" rows="16" placeholder="{ &quot;summary&quot;: &quot;...&quot;, &quot;skills&quot;: { ... } }"></textarea>
+        <div class="paste-actions">
+          <button type="button" class="ghost" (click)="pasteOpen.set(false)">Cancel</button>
+          <button type="button" (click)="importPastedJson()">Fill resume</button>
+        </div>
+      </section>
+    </div>
   `,
   styles: [`
     .bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #1c2334; color: #fff; }
@@ -84,6 +97,13 @@ import { ApiService, HistoryMeta } from '../services/api.service';
     }
     .menu-item:hover { background: #eef1f7; }
     .entry-date { color: #4a5060; font-size: 11px; white-space: nowrap; }
+    .paste-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(15, 23, 42, 0.55); z-index: 30; }
+    .paste-dialog { width: min(680px, 100%); padding: 20px; background: #fff; color: #1c2334; border-radius: 8px; box-shadow: 0 16px 50px rgba(0,0,0,0.25); }
+    .paste-dialog h2 { margin: 0 0 6px; font-size: 20px; }
+    .paste-dialog p { margin: 0 0 12px; color: #4a5060; font-size: 13px; }
+    .paste-dialog textarea { width: 100%; box-sizing: border-box; resize: vertical; font: 12px/1.5 Consolas, monospace; border: 1px solid #cfd3db; border-radius: 4px; padding: 10px; }
+    .paste-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    @media (max-width: 800px) { .bar { align-items: flex-start; flex-direction: column; gap: 8px; } .actions { flex-wrap: wrap; } }
   `],
 })
 export class ToolbarComponent implements OnInit {
@@ -96,6 +116,8 @@ export class ToolbarComponent implements OnInit {
   readonly message = signal('');
   readonly history = signal<HistoryMeta[]>([]);
   readonly dropdownOpen = signal(false);
+  readonly pasteOpen = signal(false);
+  pasteValue = '';
 
   ngOnInit(): void {
     this.refreshHistory();
@@ -129,6 +151,17 @@ export class ToolbarComponent implements OnInit {
       input.value = '';
     };
     reader.readAsText(file);
+  }
+
+  importPastedJson(): void {
+    try {
+      this.store.importJson(this.pasteValue);
+      this.pasteOpen.set(false);
+      this.pasteValue = '';
+      this.message.set('Resume filled from JSON.');
+    } catch (e: any) {
+      this.message.set('Import failed: ' + e.message);
+    }
   }
 
   downloadPdf(): void {

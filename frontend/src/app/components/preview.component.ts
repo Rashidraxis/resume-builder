@@ -69,7 +69,7 @@ function normalize(v: string | undefined | null): string {
               <span class="entry-date">{{ fmt(role.startDate) }} - {{ fmt(role.endDate) }}</span>
             </div>
             <ul class="doc-list">
-              <li *ngFor="let b of role.bullets">- {{ clean(b) }}</li>
+              <li *ngFor="let b of role.bullets">- <span [innerHTML]="format(b)"></span></li>
             </ul>
           </div>
         </section>
@@ -84,7 +84,7 @@ function normalize(v: string | undefined | null): string {
               <span class="entry-role">Tech Stack: {{ p.techStack.join(', ') }}</span>
             </div>
             <ul class="doc-list">
-              <li *ngFor="let b of p.bullets">- {{ clean(b) }}</li>
+              <li *ngFor="let b of p.bullets">- <span [innerHTML]="format(b)"></span></li>
             </ul>
           </div>
         </section>
@@ -166,6 +166,16 @@ export class PreviewComponent {
 
   fmt = fmtDate;
   clean = normalize;
+
+  format(value: string): string {
+    const escaped = normalize(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  }
 
   hasLinks = computed(() => {
     const c = this.resume().contact;

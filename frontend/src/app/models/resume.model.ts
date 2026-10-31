@@ -56,6 +56,39 @@ export interface Resume {
   certifications: Certification[];
 }
 
+export interface ResumeImport {
+  contact?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+    openToRelocation?: boolean;
+    linkedin?: string;
+    github?: string;
+    portfolio?: string;
+  };
+  summary?: string;
+  skills?: Record<string, string[] | string>;
+  experience?: Array<{
+    company?: string;
+    title?: string;
+    location?: string;
+    dates?: string;
+    bullets?: string[];
+  }>;
+  projects?: Array<{
+    name?: string;
+    link?: string;
+    techStack?: string | string[];
+    bullets?: string[];
+  }>;
+  education?: Array<{
+    institution?: string;
+    degree?: string;
+    dates?: string;
+  }>;
+}
+
 export const emptyResume = (): Resume => ({
   contact: {
     name: '',

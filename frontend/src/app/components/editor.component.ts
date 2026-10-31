@@ -43,6 +43,14 @@ import { Resume } from '../models/resume.model';
         <summary>Skills</summary>
         <div formArrayName="skills">
           <div *ngFor="let g of skills.controls; let i = index" [formGroupName]="i" class="card">
+            <div class="card-header">
+              <span class="card-index">Group {{ i + 1 }}</span>
+              <div class="inline-actions">
+                <button type="button" class="tiny" (click)="moveInArray(skills, i, -1)" [disabled]="i === 0" title="Move up">&#9650;</button>
+                <button type="button" class="tiny" (click)="moveInArray(skills, i, 1)" [disabled]="i === skills.length - 1" title="Move down">&#9660;</button>
+                <button type="button" class="ghost" (click)="skills.removeAt(i)">Remove</button>
+              </div>
+            </div>
             <div class="grid">
               <label>Category<input formControlName="category" placeholder="Languages / Frameworks / Databases..." /></label>
               <label>Items (comma-separated)
@@ -50,7 +58,6 @@ import { Resume } from '../models/resume.model';
                        placeholder="Java, TypeScript, SQL" />
               </label>
             </div>
-            <button type="button" class="ghost" (click)="skills.removeAt(i)">Remove group</button>
           </div>
         </div>
         <button type="button" (click)="addSkillGroup()">+ Add skill group</button>
@@ -60,26 +67,35 @@ import { Resume } from '../models/resume.model';
         <summary>Work Experience</summary>
         <div formArrayName="workExperience">
           <div *ngFor="let w of workExperience.controls; let i = index" [formGroupName]="i" class="card">
-            <div class="grid">
+            <div class="card-header">
+              <span class="card-index">Role {{ i + 1 }}</span>
+              <div class="inline-actions">
+                <button type="button" class="ghost" (click)="workExperience.removeAt(i)">Remove</button>
+              </div>
+            </div>
+            <div class="role-primary">
               <label>Company<input formControlName="company" /></label>
               <label>Title<input formControlName="title" /></label>
+            </div>
+            <div class="role-secondary">
               <label>Location<input formControlName="location" placeholder="City, Country (optional)" /></label>
               <label>Start (YYYY-MM)<input formControlName="startDate" placeholder="2023-10" /></label>
               <label>End (YYYY-MM or Present)<input formControlName="endDate" placeholder="Present" /></label>
             </div>
+            <div class="section-label">Bullets</div>
             <div formArrayName="bullets" class="bullets">
               <div *ngFor="let b of bulletsOf(workExperience, i).controls; let j = index" class="bullet-row">
-                <textarea rows="2" [formControlName]="j" placeholder="Start with a strong verb; include a metric where possible."></textarea>
+                <textarea #bulletInput rows="3" [formControlName]="j" placeholder="Start with a strong verb; include a metric where possible."></textarea>
                 <div class="bullet-actions">
+                  <button type="button" class="tiny" (click)="moveBullet(workExperience, i, j, -1)" [disabled]="j === 0" title="Move up">&#9650;</button>
+                  <button type="button" class="tiny" (click)="toggleBold(workExperience, i, j, bulletInput)" title="Bold selected text">B</button>
                   <button type="button" (click)="aiBullet(workExperience, i, j)" [disabled]="aiBusy()">AI</button>
+                  <button type="button" class="tiny" (click)="moveBullet(workExperience, i, j, 1)" [disabled]="j === bulletsOf(workExperience, i).length - 1" title="Move down">&#9660;</button>
                   <button type="button" class="ghost" (click)="removeBullet(workExperience, i, j)">x</button>
                 </div>
               </div>
             </div>
-            <div class="row-actions">
-              <button type="button" (click)="addBullet(workExperience, i)">+ Add bullet</button>
-              <button type="button" class="ghost" (click)="workExperience.removeAt(i)">Remove role</button>
-            </div>
+            <button type="button" class="add-inline" (click)="addBullet(workExperience, i)">+ Add bullet</button>
           </div>
         </div>
         <button type="button" (click)="addWork()">+ Add role</button>
@@ -89,26 +105,33 @@ import { Resume } from '../models/resume.model';
         <summary>Projects</summary>
         <div formArrayName="projects">
           <div *ngFor="let p of projects.controls; let i = index" [formGroupName]="i" class="card">
-            <div class="grid">
+            <div class="card-header">
+              <span class="card-index">Project {{ i + 1 }}</span>
+              <div class="inline-actions">
+                <button type="button" class="ghost" (click)="projects.removeAt(i)">Remove</button>
+              </div>
+            </div>
+            <div class="role-primary">
               <label>Name<input formControlName="name" /></label>
               <label>URL (optional)<input formControlName="url" placeholder="https://..." /></label>
-              <label>Tech Stack (comma-separated)
-                <input [value]="techAsString(i)" (input)="setTech(i, $any($event.target).value)" />
-              </label>
             </div>
+            <label class="full">Tech Stack (comma-separated)
+              <input [value]="techAsString(i)" (input)="setTech(i, $any($event.target).value)" />
+            </label>
+            <div class="section-label">Bullets</div>
             <div formArrayName="bullets" class="bullets">
               <div *ngFor="let b of bulletsOf(projects, i).controls; let j = index" class="bullet-row">
-                <textarea rows="2" [formControlName]="j"></textarea>
+                <textarea #bulletInput rows="3" [formControlName]="j"></textarea>
                 <div class="bullet-actions">
+                  <button type="button" class="tiny" (click)="moveBullet(projects, i, j, -1)" [disabled]="j === 0" title="Move up">&#9650;</button>
+                  <button type="button" class="tiny" (click)="toggleBold(projects, i, j, bulletInput)" title="Bold selected text">B</button>
                   <button type="button" (click)="aiBullet(projects, i, j)" [disabled]="aiBusy()">AI</button>
+                  <button type="button" class="tiny" (click)="moveBullet(projects, i, j, 1)" [disabled]="j === bulletsOf(projects, i).length - 1" title="Move down">&#9660;</button>
                   <button type="button" class="ghost" (click)="removeBullet(projects, i, j)">x</button>
                 </div>
               </div>
             </div>
-            <div class="row-actions">
-              <button type="button" (click)="addBullet(projects, i)">+ Add bullet</button>
-              <button type="button" class="ghost" (click)="projects.removeAt(i)">Remove project</button>
-            </div>
+            <button type="button" class="add-inline" (click)="addBullet(projects, i)">+ Add bullet</button>
           </div>
         </div>
         <button type="button" (click)="addProject()">+ Add project</button>
@@ -184,13 +207,61 @@ import { Resume } from '../models/resume.model';
       border: 1px solid #e2e5eb;
       background: #fafbfd;
       border-radius: 6px;
-      padding: 10px;
+      padding: 12px 14px;
       margin: 10px 0;
     }
-    .bullets { margin-top: 8px; }
-    .bullet-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-bottom: 6px; }
-    .bullet-actions { display: flex; flex-direction: column; gap: 4px; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #d4d7dd;
+    }
+    .card-index {
+      font-size: 11px;
+      font-weight: 600;
+      color: #4a5060;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .inline-actions { display: flex; gap: 6px; align-items: center; }
+    .role-primary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .role-secondary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    label.full { display: flex; flex-direction: column; font-size: 12px; color: #4a5060; margin-bottom: 10px; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4a5060;
+      margin: 6px 0 4px;
+    }
+    .bullets { margin-top: 4px; }
+    .bullet-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 8px; align-items: start; }
+    .bullet-actions {
+      display: grid;
+      grid-template-columns: auto auto;
+      grid-auto-flow: row;
+      gap: 4px;
+      align-self: start;
+    }
+    .bullet-actions button { padding: 3px 6px; font-size: 10px; min-width: 28px; }
+    .add-inline { margin-top: 4px; }
     .row-actions { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+    @media (max-width: 460px) {
+      .role-primary { grid-template-columns: 1fr; }
+    }
     button {
       background: #2554d1;
       color: #fff;
@@ -201,7 +272,8 @@ import { Resume } from '../models/resume.model';
       font-size: 12px;
     }
     button.ghost { background: transparent; color: #b02a37; border: 1px solid #e0b4b8; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.tiny { padding: 2px 6px; font-size: 10px; min-width: 22px; line-height: 1; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
     .hint { color: #4a5060; font-size: 12px; }
   `],
 })
@@ -316,6 +388,16 @@ export class EditorComponent implements OnInit {
   removeBullet(arr: FormArray, i: number, j: number): void {
     (arr.at(i).get('bullets') as FormArray).removeAt(j);
   }
+  moveBullet(arr: FormArray, i: number, j: number, dir: -1 | 1): void {
+    this.moveInArray(arr.at(i).get('bullets') as FormArray, j, dir);
+  }
+  moveInArray(arr: FormArray, i: number, dir: -1 | 1): void {
+    const target = i + dir;
+    if (target < 0 || target >= arr.length) return;
+    const ctrl = arr.at(i);
+    arr.removeAt(i, { emitEvent: false });
+    arr.insert(target, ctrl);
+  }
 
   aiSummary(): void {
     this.aiBusy.set(true);
@@ -344,6 +426,16 @@ export class EditorComponent implements OnInit {
       },
       error: e => { this.aiMessage.set(e.message); this.aiBusy.set(false); },
     });
+  }
+
+  toggleBold(arr: FormArray, i: number, j: number, textarea: HTMLTextAreaElement): void {
+    const control = (arr.at(i).get('bullets') as FormArray).at(j) as FormControl<string>;
+    const value = control.value ?? '';
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? start;
+    if (start === end) return;
+    control.setValue(`${value.slice(0, start)}**${value.slice(start, end)}**${value.slice(end)}`);
+    requestAnimationFrame(() => textarea.setSelectionRange(start + 2, end + 2));
   }
 
   private split(value: string): string[] {

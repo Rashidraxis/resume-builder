@@ -17,6 +17,10 @@ function normalize(s: string | undefined | null): string {
   return String(s ?? '').replace(/\s+/g, ' ').trim();
 }
 
+function inline(s: string | undefined | null): string {
+  return esc(normalize(s)).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
 function fmtDate(value: string | undefined): string {
   if (!value) return '';
   const v = value.trim();
@@ -35,7 +39,7 @@ function renderList(items: string[]): string {
   const bullets = items
     .map(b => normalize(b))
     .filter(Boolean)
-    .map(b => `<li>- ${esc(b)}</li>`)
+    .map(b => `<li>- ${inline(b)}</li>`)
     .join('');
   return bullets ? `<ul class="doc-list">${bullets}</ul>` : '';
 }
