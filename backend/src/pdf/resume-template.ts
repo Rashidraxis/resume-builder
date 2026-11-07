@@ -35,13 +35,23 @@ function stripProtocol(url: string): string {
   return url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
 }
 
-function isHttpUrl(value: string): boolean {
+function absoluteHttpUrl(value: string | undefined): string | undefined {
+  const normalized = normalize(value);
+  if (!normalized) return undefined;
+  const url = /^https?:\/\//i.test(normalized) ? normalized : `https://${normalized}`;
   try {
-    const url = new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:';
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? url : undefined;
   } catch {
-    return false;
+    return undefined;
   }
+}
+
+function renderExternalLink(value: string | undefined, className = ''): string {
+  const url = absoluteHttpUrl(value);
+  if (!url) return esc(normalize(value));
+  const classAttr = className ? ` class="${esc(className)}"` : '';
+  return `<a${classAttr} href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(stripProtocol(url))}</a>`;
 }
 
 function renderList(items: string[]): string {
@@ -61,9 +71,9 @@ export function renderResumeHtml(r: ResumeDto): string {
   if (c.location) contactBits.push(esc(c.location) + (c.openToRelocation ? ' (Open to Relocation)' : ''));
 
   const links: string[] = [];
-  if (c.linkedin) links.push(esc(stripProtocol(c.linkedin)));
-  if (c.github) links.push(esc(stripProtocol(c.github)));
-  if (c.portfolio) links.push(esc(stripProtocol(c.portfolio)));
+  if (c.linkedin) links.push(renderExternalLink(c.linkedin));
+  if (c.github) links.push(renderExternalLink(c.github));
+  if (c.portfolio) links.push(renderExternalLink(c.portfolio));
 
   const sections: string[] = [];
 
@@ -107,7 +117,7 @@ export function renderResumeHtml(r: ResumeDto): string {
   if (r.projects?.length) {
     const entries = r.projects.map(p => `
       <div class="doc-entry">
-        <div class="entry-header"><span class="entry-title">${esc(p.name)}${p.url ? ' (' + esc(stripProtocol(p.url)) + ')' : ''}</span></div>
+        <div class="entry-header"><span class="entry-title">${esc(p.name)}${p.url ? ' (' + renderExternalLink(p.url) + ')' : ''}</span></div>
         ${p.techStack?.length ? `<div class="entry-row"><span class="entry-role">Tech Stack: ${esc(p.techStack.join(', '))}</span></div>` : ''}
         ${renderList(p.bullets ?? [])}
       </div>`).join('');
@@ -138,9 +148,9 @@ export function renderResumeHtml(r: ResumeDto): string {
   if (r.certifications?.length) {
     const rows = r.certifications
       .map(k => {
-        const url = (k.url ?? k.verificationUrl)?.trim();
-        const name = url && isHttpUrl(url)
-          ? `<a class="certification-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(k.name)}</a>`
+        const url = k.url ?? k.verificationUrl;
+        const name = url && absoluteHttpUrl(url)
+          ? `<a class="certification-link" href="${esc(absoluteHttpUrl(url)!)}" target="_blank" rel="noopener noreferrer">${esc(k.name)}</a>`
           : esc(k.name);
         return `<li>- ${name} - ${esc(k.issuer)} (${esc(fmtDate(k.date))})</li>`;
       })

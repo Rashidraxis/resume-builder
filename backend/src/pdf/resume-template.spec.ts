@@ -80,6 +80,14 @@ describe('renderResumeHtml (ATS-safety guarantees)', () => {
     expect(html).not.toContain('Senior Software Engineer - London, UK');
   });
 
+  it('renders contact and project URLs as absolute clickable links', () => {
+    expect(html).toContain('href="https://linkedin.com/in/ada"');
+    expect(html).toContain('href="https://github.com/ada"');
+    expect(html).toContain('href="https://github.com/ada/diff-engine"');
+    expect(html).toContain('>github.com/ada</a>');
+    expect(html).not.toContain('href="github.com/');
+  });
+
   it('renders dates as "Mon YYYY - Mon YYYY" (or " - Present")', () => {
     expect(html).toContain('Apr 2022 - Present');
     expect(html).toContain('Sep 2015 - Jun 2018');
