@@ -85,10 +85,9 @@ import { Resume } from '../models/resume.model';
             <div class="section-label">Bullets</div>
             <div formArrayName="bullets" class="bullets">
               <div *ngFor="let b of bulletsOf(workExperience, i).controls; let j = index" class="bullet-row">
-                <textarea #bulletInput rows="3" [formControlName]="j" placeholder="Start with a strong verb; include a metric where possible."></textarea>
+                <textarea rows="3" [formControlName]="j" placeholder="Start with a strong verb; include a metric where possible."></textarea>
                 <div class="bullet-actions">
                   <button type="button" class="tiny" (click)="moveBullet(workExperience, i, j, -1)" [disabled]="j === 0" title="Move up">&#9650;</button>
-                  <button type="button" class="tiny" (click)="toggleBold(workExperience, i, j, bulletInput)" title="Bold selected text">B</button>
                   <button type="button" (click)="aiBullet(workExperience, i, j)" [disabled]="aiBusy()">AI</button>
                   <button type="button" class="tiny" (click)="moveBullet(workExperience, i, j, 1)" [disabled]="j === bulletsOf(workExperience, i).length - 1" title="Move down">&#9660;</button>
                   <button type="button" class="ghost" (click)="removeBullet(workExperience, i, j)">x</button>
@@ -121,10 +120,9 @@ import { Resume } from '../models/resume.model';
             <div class="section-label">Bullets</div>
             <div formArrayName="bullets" class="bullets">
               <div *ngFor="let b of bulletsOf(projects, i).controls; let j = index" class="bullet-row">
-                <textarea #bulletInput rows="3" [formControlName]="j"></textarea>
+                <textarea rows="3" [formControlName]="j"></textarea>
                 <div class="bullet-actions">
                   <button type="button" class="tiny" (click)="moveBullet(projects, i, j, -1)" [disabled]="j === 0" title="Move up">&#9650;</button>
-                  <button type="button" class="tiny" (click)="toggleBold(projects, i, j, bulletInput)" title="Bold selected text">B</button>
                   <button type="button" (click)="aiBullet(projects, i, j)" [disabled]="aiBusy()">AI</button>
                   <button type="button" class="tiny" (click)="moveBullet(projects, i, j, 1)" [disabled]="j === bulletsOf(projects, i).length - 1" title="Move down">&#9660;</button>
                   <button type="button" class="ghost" (click)="removeBullet(projects, i, j)">x</button>
@@ -427,16 +425,6 @@ export class EditorComponent implements OnInit {
       },
       error: e => { this.aiMessage.set(e.message); this.aiBusy.set(false); },
     });
-  }
-
-  toggleBold(arr: FormArray, i: number, j: number, textarea: HTMLTextAreaElement): void {
-    const control = (arr.at(i).get('bullets') as FormArray).at(j) as FormControl<string>;
-    const value = control.value ?? '';
-    const start = textarea.selectionStart ?? 0;
-    const end = textarea.selectionEnd ?? start;
-    if (start === end) return;
-    control.setValue(`${value.slice(0, start)}**${value.slice(start, end)}**${value.slice(end)}`);
-    requestAnimationFrame(() => textarea.setSelectionRange(start + 2, end + 2));
   }
 
   private split(value: string): string[] {
