@@ -35,6 +35,15 @@ function stripProtocol(url: string): string {
   return url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
 }
 
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function renderList(items: string[]): string {
   const bullets = items
     .map(b => normalize(b))
@@ -128,7 +137,13 @@ export function renderResumeHtml(r: ResumeDto): string {
 
   if (r.certifications?.length) {
     const rows = r.certifications
-      .map(k => `<li>- ${esc(k.name)} - ${esc(k.issuer)} (${esc(fmtDate(k.date))})</li>`)
+      .map(k => {
+        const url = (k.url ?? k.verificationUrl)?.trim();
+        const name = url && isHttpUrl(url)
+          ? `<a class="certification-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(k.name)}</a>`
+          : esc(k.name);
+        return `<li>- ${name} - ${esc(k.issuer)} (${esc(fmtDate(k.date))})</li>`;
+      })
       .join('');
     sections.push(`
       <section>
@@ -173,6 +188,7 @@ export function renderResumeHtml(r: ResumeDto): string {
     font-style: italic;
   }
   .entry-date { white-space: nowrap; }
+  .certification-link { color: #1a56db; text-decoration: underline; }
   section { page-break-inside: avoid; }
 </style>
 </head>

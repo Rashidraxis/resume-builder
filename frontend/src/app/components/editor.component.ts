@@ -165,6 +165,7 @@ import { Resume } from '../models/resume.model';
               <label>Name<input formControlName="name" /></label>
               <label>Issuer<input formControlName="issuer" /></label>
               <label>Date (YYYY-MM)<input formControlName="date" /></label>
+              <label>Verification URL (optional)<input formControlName="url" type="url" placeholder="https://..." /></label>
             </div>
             <button type="button" class="ghost" (click)="certifications.removeAt(i)">Remove</button>
           </div>
@@ -379,7 +380,7 @@ export class EditorComponent implements OnInit {
   }
 
   addCert(): void {
-    this.certifications.push(this.fb.group({ name: [''], issuer: [''], date: [''] }));
+    this.certifications.push(this.fb.group({ name: [''], issuer: [''], date: [''], url: [''] }));
   }
 
   addBullet(arr: FormArray, i: number): void {
@@ -482,7 +483,7 @@ export class EditorComponent implements OnInit {
     }
     for (const c of r.certifications ?? []) {
       this.certifications.push(this.fb.group({
-        name: [c.name], issuer: [c.issuer], date: [c.date],
+        name: [c.name], issuer: [c.issuer], date: [c.date], url: [c.url ?? c.verificationUrl ?? ''],
       }), { emitEvent: false });
     }
   }

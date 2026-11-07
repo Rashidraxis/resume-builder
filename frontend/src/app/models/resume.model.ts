@@ -44,6 +44,9 @@ export interface Certification {
   name: string;
   issuer: string;
   date: string;
+  url?: string;
+  /** @deprecated Use url. Kept for resumes saved before the field was renamed. */
+  verificationUrl?: string;
 }
 
 export interface Resume {
@@ -86,6 +89,13 @@ export interface ResumeImport {
     institution?: string;
     degree?: string;
     dates?: string;
+  }>;
+  certifications?: Array<{
+    name?: string;
+    issuer?: string;
+    date?: string;
+    url?: string;
+    verificationUrl?: string;
   }>;
 }
 

@@ -109,7 +109,11 @@ function normalize(v: string | undefined | null): string {
           <h2 class="doc-section">CERTIFICATIONS</h2>
           <ul class="doc-list">
             <li *ngFor="let c of resume().certifications">
-              - {{ c.name }} - {{ c.issuer }} ({{ fmt(c.date) }})
+              -
+              <a *ngIf="isHttpUrl(c.url ?? c.verificationUrl); else plainCertificationName"
+                 [href]="c.url ?? c.verificationUrl" target="_blank" rel="noopener noreferrer">{{ c.name }}</a>
+              <ng-template #plainCertificationName>{{ c.name }}</ng-template>
+              - {{ c.issuer }} ({{ fmt(c.date) }})
             </li>
           </ul>
         </section>
@@ -184,5 +188,15 @@ export class PreviewComponent {
 
   stripProtocol(url: string): string {
     return url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  }
+
+  isHttpUrl(value: string | undefined): boolean {
+    if (!value) return false;
+    try {
+      const url = new URL(value);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
   }
 }

@@ -25,7 +25,13 @@ export interface ResumeEducation {
   startDate: string; endDate: string; gpa?: string; coursework?: string[];
 }
 
-export interface ResumeCertification { name: string; issuer: string; date: string; }
+export interface ResumeCertification {
+  name: string;
+  issuer: string;
+  date: string;
+  url?: string;
+  verificationUrl?: string;
+}
 
 export interface ResumeDto {
   contact: ResumeContact;

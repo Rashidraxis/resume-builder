@@ -47,7 +47,14 @@ const sample = (): ResumeDto => ({
       coursework: [],
     },
   ],
-  certifications: [],
+  certifications: [
+    {
+      name: 'Cloud Architect',
+      issuer: 'Example Academy',
+      date: '2024-06',
+      url: 'https://certs.example.com/verify/123',
+    },
+  ],
 });
 
 describe('renderResumeHtml (ATS-safety guarantees)', () => {
@@ -76,6 +83,27 @@ describe('renderResumeHtml (ATS-safety guarantees)', () => {
   it('renders dates as "Mon YYYY - Mon YYYY" (or " - Present")', () => {
     expect(html).toContain('Apr 2022 - Present');
     expect(html).toContain('Sep 2015 - Jun 2018');
+  });
+
+  it('links the certification name and keeps the URL out of visible text', () => {
+    expect(html).toContain('<a class="certification-link" href="https://certs.example.com/verify/123" target="_blank" rel="noopener noreferrer">Cloud Architect</a> - Example Academy (Jun 2024)');
+    expect(html).not.toContain('>https://certs.example.com/verify/123</a>');
+    expect(html).toContain('.certification-link { color: #1a56db; text-decoration: underline; }');
+  });
+
+  it('renders certifications without a URL as plain names with no trailing separator', () => {
+    const withoutUrl = sample();
+    withoutUrl.certifications[0].url = undefined;
+    const out = renderResumeHtml(withoutUrl);
+    expect(out).toContain('<li>- Cloud Architect - Example Academy (Jun 2024)</li>');
+  });
+
+  it('does not make non-HTTP certification URLs clickable', () => {
+    const unsafe = sample();
+    unsafe.certifications[0].url = 'javascript:alert(1)';
+    const out = renderResumeHtml(unsafe);
+    expect(out).toContain('<li>- Cloud Architect - Example Academy (Jun 2024)</li>');
+    expect(out).not.toContain('<a class="certification-link" href="javascript:alert(1)">');
   });
 
   it('is free of ATS-hostile characters (em/en dashes, smart quotes, bullet chars, emoji)', () => {

@@ -103,6 +103,12 @@ export class ResumeStoreService {
           coursework: [],
         };
       }),
+      certifications: (input.certifications ?? []).map(certification => ({
+        name: this.stringValue(certification.name),
+        issuer: this.stringValue(certification.issuer),
+        date: this.stringValue(certification.date),
+        url: this.stringValue(certification.url ?? certification.verificationUrl),
+      })),
     };
   }
 
